@@ -25,7 +25,7 @@ source venv/bin/activate
 ```
 on Windows system
 ```
-.\env_name\Scripts\activate.bat
+.\venv\Scripts\activate.bat
 ```
 3. Install requirements
 
