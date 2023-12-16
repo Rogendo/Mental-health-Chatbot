@@ -139,6 +139,17 @@ def home():
 def get_bot_response():
     userText = request.args.get('msg')
     print(userText)
+
+    # language detection
+    doc=nlp(userText)
+    detected_language = doc._.language['language']
+    print(f"Detected language: {detected_language}")   
+
+    if detected_language=="en":   
+        print(translate_text_eng_swa(userText))
+    elif detected_language=='sw':
+        print(translate_text_swa_eng(userText))
+
     return chatbot_response(userText)
 if __name__ == "__main__":
     app.run()
