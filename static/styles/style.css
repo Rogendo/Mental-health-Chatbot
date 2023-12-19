@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans&display=swap');
 :root {
 --body-bg: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 --msger-bg: #C3FAF0;
@@ -21,7 +22,7 @@ justify-content: center;
 align-items: center;
 height: 100vh;
 background-image: var(--body-bg);
-font-family: Helvetica, sans-serif;
+font-family: 'Josefin Sans', sans-serif;
 }
 .msger {
 display: flex;
@@ -112,17 +113,20 @@ margin: 0 0 0 10px;
 display: flex;
 padding: 10px;
 border-top: var(--border);
+font-family: 'Josefin Sans', sans-serif;
 background: #eee;
 }
 .msger-inputarea * {
 padding: 10px;
 border: none;
 border-radius: 3px;
+font-family: 'Josefin Sans', sans-serif;
 font-size: 1em;
 }
 .msger-input {
 flex: 1;
 background: #ddd;
+font-family: 'Josefin Sans', sans-serif;
 }
 .msger-send-btn {
 margin-left: 10px;
@@ -130,6 +134,7 @@ background: rgb(0, 196, 65);
 color: #fff;
 font-weight: bold;
 cursor: pointer;
+font-family: 'Josefin Sans', sans-serif;
 transition: background 0.23s;
 }
 .msger-send-btn:hover {

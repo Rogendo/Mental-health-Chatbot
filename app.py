@@ -22,8 +22,8 @@ from spacy_langdetect import LanguageDetector
 
 # translator pipeline for english to swahili translations
 eng_swa_model_checkpoint = "Helsinki-NLP/opus-mt-en-swc"
-eng_swa_tokenizer = AutoTokenizer.from_pretrained("model/eng_swa_model/")
-eng_swa_model = AutoModelForSeq2SeqLM.from_pretrained("model/eng_swa_model/")
+eng_swa_tokenizer = AutoTokenizer.from_pretrained("./model/en_sw/")
+eng_swa_model = AutoModelForSeq2SeqLM.from_pretrained("./model/en_sw/")
 
 eng_swa_translator = pipeline(
     "text2text-generation",
@@ -37,8 +37,8 @@ def translate_text_eng_swa(text):
 
 # translator pipeline for swahili to english translations
 swa_eng_model_checkpoint = "Helsinki-NLP/opus-mt-swc-en"
-swa_eng_tokenizer = AutoTokenizer.from_pretrained("model/swa_eng_model/")
-swa_eng_model = AutoModelForSeq2SeqLM.from_pretrained("model/swa_eng_model/")
+swa_eng_tokenizer = AutoTokenizer.from_pretrained("./model/sw_en/")
+swa_eng_model = AutoModelForSeq2SeqLM.from_pretrained("./model/sw_en/")
 
 swa_eng_translator = pipeline(
     "text2text-generation",
@@ -103,30 +103,38 @@ def predict_class(sentence, model):
     for r in results:
         return_list.append({"intent": classes[r[0]], "probability": str(r[1])})
     return return_list
+
 def getResponse(ints, intents_json):
-    tag = ints[0]['intent']
-    list_of_intents = intents_json['intents']
-    for i in list_of_intents:
-        if(i['tag']== tag):
-            result = random.choice(i['responses'])
-            break
-    return result
+    if ints: 
+        tag = ints[0]['intent']
+        list_of_intents = intents_json['intents']
+        for i in list_of_intents:
+            if i['tag'] == tag:
+                result = random.choice(i['responses'])
+                break
+        return result
+    else:
+        return "Sorry, I didn't understand that."
 
 def chatbot_response(msg):
     ints = predict_class(msg, model)
     res = getResponse(ints, intents)
     print(res)
+    
     # language detection
-    doc=nlp(res)
+    doc = nlp(res)
     detected_language = doc._.language['language']
-    print(f"Detected language: {detected_language}")   
+    print(f"Detected language: {detected_language}")
 
-    if detected_language=="en":   
-        print(translate_text_eng_swa(res))
-    elif detected_language=='sw':
-        print(translate_text_swa_eng(res))
+    translated_response = res  
 
-    return res
+    if detected_language == "en":
+        pass  
+    elif detected_language == 'sw':
+        translated_response = translate_text_eng_swa(res)  
+
+    print(translated_response)
+    return translated_response
     
 # Creating GUI with flask
 from flask import Flask, render_template, request
@@ -141,15 +149,16 @@ def get_bot_response():
     print(userText)
 
     # language detection
-    doc=nlp(userText)
+    doc = nlp(userText)
     detected_language = doc._.language['language']
     print(f"Detected language: {detected_language}")   
 
-    if detected_language=="en":   
-        print(translate_text_eng_swa(userText))
-    elif detected_language=='sw':
-        print(translate_text_swa_eng(userText))
+    if detected_language == "en":   
+        response = chatbot_response(userText)  
+    elif detected_language == 'sw':
+        response = translate_text_eng_swa(chatbot_response(userText))    
 
-    return chatbot_response(userText)
+    print(response)
+    return response
 if __name__ == "__main__":
     app.run()
