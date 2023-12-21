@@ -1,7 +1,5 @@
 import nltk
-nltk.download('popular')#  Natural Language Toolkit (NLTK) library installed will download and
-# install a collection of popular NLTK data packages, including corpora,
-# models etc
+nltk.download('popular')
 from nltk.stem import WordNetLemmatizer
 lemmatizer = WordNetLemmatizer()
 import pickle
@@ -51,17 +49,13 @@ def translate_text_swa_eng(text):
     return translated_text
 
 
-# Language detector
 def get_lang_detector(nlp, name):
     return LanguageDetector()
 
-# # Load the English language model
 nlp = spacy.load("en_core_web_sm")
 
-# # Register the language detection factory
 Language.factory("language_detector", func=get_lang_detector)
 
-# # Add the language detection component to the pipeline
 nlp.add_pipe('language_detector', last=True)
 
 
@@ -72,38 +66,31 @@ intents = json.loads(open('intents.json').read())
 words = pickle.load(open('texts.pkl','rb'))
 classes = pickle.load(open('labels.pkl','rb'))
 def clean_up_sentence(sentence):
-    # tokenize the pattern - split words into array
     sentence_words = nltk.word_tokenize(sentence)
-    # stem each word - create short form for word
     sentence_words = [lemmatizer.lemmatize(word.lower()) for word in sentence_words]
     return sentence_words
-# return bag of words array: 0 or 1 for each word in the bag that exists in the sentence
+
 def bow(sentence, words, show_details=True):
-    # tokenize the pattern
     sentence_words = clean_up_sentence(sentence)
-    # bag of words - matrix of N words, vocabulary matrix
     bag = [0]*len(words)  
     for s in sentence_words:
         for i,w in enumerate(words):
             if w == s: 
-                # assign 1 if current word is in the vocabulary position
                 bag[i] = 1
                 if show_details:
                     print ("found in bag: %s" % w)
     return(np.array(bag))
+
 def predict_class(sentence, model):
-    # filter out predictions below a threshold
     p = bow(sentence, words,show_details=False)
     res = model.predict(np.array([p]))[0]
     ERROR_THRESHOLD = 0.25
     results = [[i,r] for i,r in enumerate(res) if r>ERROR_THRESHOLD]
-    # sort by strength of probability
     results.sort(key=lambda x: x[1], reverse=True)
     return_list = []
     for r in results:
         return_list.append({"intent": classes[r[0]], "probability": str(r[1])})
     return return_list
-
 def getResponse(ints, intents_json):
     if ints: 
         tag = ints[0]['intent']
@@ -117,26 +104,25 @@ def getResponse(ints, intents_json):
         return "Sorry, I didn't understand that."
 
 def chatbot_response(msg):
-    ints = predict_class(msg, model)
-    res = getResponse(ints, intents)
-    print(res)
-    
-    # language detection
-    doc = nlp(res)
+    doc = nlp(msg)
     detected_language = doc._.language['language']
-    print(f"Detected language: {detected_language}")
-
-    translated_response = res  
+    print(f"Detected language chatbot_response:- {detected_language}")
+    
+    chatbotResponse = "Loading bot response..........."
 
     if detected_language == "en":
-        pass  
+        res = getResponse(predict_class(msg, model), intents)
+        chatbotResponse = res
+        print("en_sw chatbot_response:- ", res)
     elif detected_language == 'sw':
-        translated_response = translate_text_eng_swa(res)  
+        translated_msg = translate_text_swa_eng(msg)
+        res = getResponse(predict_class(translated_msg, model), intents)
+        chatbotResponse = translate_text_eng_swa(res)
+        print("sw_en chatbot_response:- ", chatbotResponse)
 
-    print(translated_response)
-    return translated_response
+    return chatbotResponse
+
     
-# Creating GUI with flask
 from flask import Flask, render_template, request
 app = Flask(__name__)
 app.static_folder = 'static'
@@ -146,19 +132,31 @@ def home():
 @app.route("/get")
 def get_bot_response():
     userText = request.args.get('msg')
-    print(userText)
+    print("get_bot_response:- " + userText)
 
-    # language detection
     doc = nlp(userText)
     detected_language = doc._.language['language']
-    print(f"Detected language: {detected_language}")   
+    print(f"Detected language get_bot_response:- {detected_language}")
 
-    if detected_language == "en":   
-        response = chatbot_response(userText)  
+    bot_response_translate = "Loading bot response..........."  
+
+    if detected_language == "en":
+        bot_response_translate = userText  
+        print("en_sw get_bot_response:-", bot_response_translate)
+        
     elif detected_language == 'sw':
-        response = translate_text_eng_swa(chatbot_response(userText))    
+        bot_response_translate = translate_text_swa_eng(userText)  
+        print("sw_en get_bot_response:-", bot_response_translate)
 
-    print(response)
-    return response
+    chatbot_response_text = chatbot_response(bot_response_translate)
+
+    if detected_language == 'sw':
+        chatbot_response_text = translate_text_eng_swa(chatbot_response_text)
+
+    return chatbot_response_text
+
+
+
+
 if __name__ == "__main__":
     app.run()
