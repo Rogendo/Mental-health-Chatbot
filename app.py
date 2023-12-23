@@ -20,8 +20,8 @@ from spacy_langdetect import LanguageDetector
 
 # translator pipeline for english to swahili translations
 eng_swa_model_checkpoint = "Helsinki-NLP/opus-mt-en-swc"
-eng_swa_tokenizer = AutoTokenizer.from_pretrained("./model/en_sw/")
-eng_swa_model = AutoModelForSeq2SeqLM.from_pretrained("./model/en_sw/")
+eng_swa_tokenizer = AutoTokenizer.from_pretrained("./model/eng_swa_model/")
+eng_swa_model = AutoModelForSeq2SeqLM.from_pretrained("./model/eng_swa_model/")
 
 eng_swa_translator = pipeline(
     "text2text-generation",
@@ -35,8 +35,8 @@ def translate_text_eng_swa(text):
 
 # translator pipeline for swahili to english translations
 swa_eng_model_checkpoint = "Helsinki-NLP/opus-mt-swc-en"
-swa_eng_tokenizer = AutoTokenizer.from_pretrained("./model/sw_en/")
-swa_eng_model = AutoModelForSeq2SeqLM.from_pretrained("./model/sw_en/")
+swa_eng_tokenizer = AutoTokenizer.from_pretrained("./model/swa_eng_model/")
+swa_eng_model = AutoModelForSeq2SeqLM.from_pretrained("./model/swa_eng_model/")
 
 swa_eng_translator = pipeline(
     "text2text-generation",
