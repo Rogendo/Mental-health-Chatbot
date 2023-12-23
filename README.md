@@ -12,6 +12,8 @@ Its impact spans diverse sectors, including: healthcare, commerce, and governanc
 
 # How to run it?
 
+First step is to download the models from the link https://drive.google.com/drive/folders/1ybwgK1XNG1wd8As0m9vjMdQfHmD6E9uk?usp=sharing and
+
 The following instructions were tested on the Windows and Linux with Python 3.8.
 
 1. Clone this repository
