@@ -3,13 +3,10 @@ This is an AI-powered bot designed to provide emotional support and assistance t
 It can help individuals access mental health resources, offer guidance and support. 
 With the integration of Language translation, this chatbot will be very efficient as it will be able to break the language barriers. 
 
-In today’s increasingly interconnected world, the demand for effective cross-lingual communication in chatbots has never been greater.
-This project proposal addresses critical issues in the current language barrier in chatbots. The integration of these language translation capabilities to chatbots, would be revolutionary in the world of chatbots.
-
 The creation of a chatbot capable of language translation, holds transformative potential, acting as a catalyst in overcoming language barriers for effective communication and information exchange. 
 Its impact spans diverse sectors, including: healthcare, commerce, and governance etc. offering a versatile solution to bridge linguistic gaps.
 
-
+https://codeaxe.co.ke/multilingobot/
 # How to run it?
 
 First step is to download the models from the link <a href="https://drive.google.com/drive/folders/1ybwgK1XNG1wd8As0m9vjMdQfHmD6E9uk?usp=sharing"> MODEL </a> add the model in the root project directory.
