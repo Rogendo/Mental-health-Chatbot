@@ -1,77 +1,75 @@
+document.addEventListener('DOMContentLoaded', (event) => {
+    const sendButton = document.getElementById('sendButton');
+    const textInput = document.getElementById('textInput');
+    const chatbox = document.getElementById('chatbox');
 
-function updateTime() {
-    var now = new Date();
-    var hours = now.getHours();
-    var minutes = now.getMinutes();
-    var seconds = now.getSeconds();
-    var timeString = hours + ':' + minutes;
-    document.getElementById('clock').textContent = timeString;
-  }
-  setInterval(updateTime, 1000);
+    function addMessage(message, isUser = false) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat-message ${isUser ? 'user' : 'bot'}`;
+        
+        const img = document.createElement('img');
+        img.src = isUser ? '/static/img/person.png' : '/static/img/mhcicon.png';
+        img.alt = isUser ? 'User' : 'psychAI';
+        
+        const p = document.createElement('p');
+        p.textContent = message;
+        
+        messageDiv.appendChild(img);
+        messageDiv.appendChild(p);
+        chatbox.appendChild(messageDiv);
+        
+        // Scroll to the bottom of the chat
+        chatbox.scrollTop = chatbox.scrollHeight;
+    }
 
-var running = false;
-document.getElementById("chatbot_toggle").onclick = function () {
-if (document.getElementById("chatbot").classList.contains("collapsed")) {
-document.getElementById("chatbot").classList.remove("collapsed")
-document.getElementById("chatbot_toggle").children[0].style.display = "none"
-document.getElementById("chatbot_toggle").children[1].style.display = ""
-setTimeout(addResponseMsg,1000,"Hi")
-}
-else {
-document.getElementById("chatbot").classList.add("collapsed")
-document.getElementById("chatbot_toggle").children[0].style.display = ""
-document.getElementById("chatbot_toggle").children[1].style.display = "none"
-}
-}
+    function sendMessage() {
+        const message = textInput.value.trim();
+        if (message) {
+            addMessage(message, true);
+            textInput.value = '';
+            
+            fetch(`/get?msg=${encodeURIComponent(message)}`)
+                .then(response => response.text())
+                .then(data => {
+                    addMessage(data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    addMessage('Sorry, I encountered an error. Please try again.');
+                });
+        }
+    }
 
-const msgerForm = get(".msger-inputarea");
-const msgerInput = get(".msger-input");
-const msgerChat = get(".msger-chat");
-// Icons made by Freepik from www.flaticon.com
-const BOT_IMG = "static/img/mhcicon.png";
-const PERSON_IMG = "static/img/person.png";
-const BOT_NAME = "    Psychiatrist Bot";
-const PERSON_NAME = "You";
-msgerForm.addEventListener("submit", event => {
-event.preventDefault();
-const msgText = msgerInput.value;
-if (!msgText) return;
-appendMessage(PERSON_NAME, PERSON_IMG, "right", msgText);
-msgerInput.value = "";
-botResponse(msgText);
+    sendButton.addEventListener('click', sendMessage);
+    textInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
 });
-function appendMessage(name, img, side, text) {
-//   Simple solution for small apps
-const msgHTML = `
-<div class="msg ${side}-msg">
-<div class="msg-img" style="background-image: url(${img})"></div>
-<div class="msg-bubble">
-<div class="msg-info">
-<div class="msg-info-name">${name}</div>
-<div class="msg-info-time">${formatDate(new Date())}</div>
-</div>
-<div class="msg-text">${text}</div>
-</div>
-</div>
-`;
-msgerChat.insertAdjacentHTML("beforeend", msgHTML);
-msgerChat.scrollTop += 500;
-}
-function botResponse(rawText) {
-// Bot Response
-$.get("/get", { msg: rawText }).done(function (data) {
-console.log(rawText);
-console.log(data);
-const msgText = data;
-appendMessage(BOT_NAME, BOT_IMG, "left", msgText);
-});
-}
-// Utils
-function get(selector, root = document) {
-return root.querySelector(selector);
-}
-function formatDate(date) {
-const h = "0" + date.getHours();
-const m = "0" + date.getMinutes();
-return `${h.slice(-2)}:${m.slice(-2)}`;
+
+// Add this at the beginning of your script
+let isWaiting = false;
+
+// Modify your existing getBotResponse function
+function getBotResponse() {
+    if (isWaiting) return;
+    
+    var rawText = $("#textInput").val();
+    var userHtml = '<p class="userText"><span>' + rawText + '</span></p>';
+    $("#textInput").val("");
+    $("#chatbox").append(userHtml);
+    document.getElementById('userInput').scrollIntoView({block: 'start', behavior: 'smooth'});
+    
+    isWaiting = true;
+    $("#chatbox").append('<p class="botText"><span id="loading">Thinking...</span></p>');
+    document.getElementById('userInput').scrollIntoView({block: 'start', behavior: 'smooth'});
+
+    $.get("/get", { msg: rawText }).done(function(data) {
+        $("#loading").remove();
+        var botHtml = '<p class="botText"><span>' + data + '</span></p>';
+        $("#chatbox").append(botHtml);
+        document.getElementById('userInput').scrollIntoView({block: 'start', behavior: 'smooth'});
+        isWaiting = false;
+    });
 }
