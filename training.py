@@ -4,10 +4,16 @@ lemmatizer = WordNetLemmatizer()
 import json
 import pickle
 import numpy as np
-from keras.models import Sequential
-from keras.layers import Dense, Activation, Dropout
-from keras.optimizers import SGD
+import tensorflow as tf
+import keras
+from tensorflow.keras.models import Sequential  # Updated import
+from tensorflow.keras.layers import Dense, Activation, Dropout  # Updated import
+from tensorflow.keras.optimizers import SGD, Adam  # Updated import
+from tensorflow.keras.callbacks import TensorBoard, EarlyStopping  # Updated import
 import random
+from sklearn.model_selection import train_test_split
+import optuna
+
 words=[]
 classes = []
 documents = []
@@ -66,18 +72,98 @@ training = np.array(training)
 train_x = list(training[:,0])
 train_y = list(training[:,1])
 print("Training data created")
-# Create model - 3 layers. First layer 128 neurons, second layer 64 neurons and 3rd output layer contains number of neurons
-# equal to number of intents to predict output intent with softmax
-model = Sequential()
-model.add(Dense(128, input_shape=(len(train_x[0]),), activation='relu'))
-model.add(Dropout(0.5))
-model.add(Dense(64, activation='relu'))
-model.add(Dropout(0.5))
-model.add(Dense(len(train_y[0]), activation='softmax'))
-# Compile model. Stochastic gradient descent with Nesterov accelerated gradient gives good results for this model
-sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
-model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
-#fitting and saving the model 
-hist = model.fit(np.array(train_x), np.array(train_y), epochs=200, batch_size=5, verbose=1)
-model.save('model.h5', hist)
-print("model created")
+
+def objective(trial):
+    # Define hyperparameters to tune
+    learning_rate = trial.suggest_loguniform('learning_rate', 1e-5, 1e-2)
+    num_layers = trial.suggest_int('num_layers', 2, 5)
+    units = [trial.suggest_int(f'units_l{i}', 32, 256) for i in range(num_layers)]
+    dropout_rate = trial.suggest_uniform('dropout_rate', 0.1, 0.5)
+
+    model = Sequential()
+    model.add(Dense(units[0], input_shape=(len(X_train[0]),), activation='relu'))
+    model.add(Dropout(dropout_rate))
+
+    for i in range(1, num_layers):
+        model.add(Dense(units[i], activation='relu'))
+        model.add(Dropout(dropout_rate))
+
+    model.add(Dense(len(y_train[0]), activation='softmax'))
+
+    optimizer = Adam(learning_rate=learning_rate)
+    model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+
+    history = model.fit(
+        X_train, y_train,
+        epochs=100,
+        batch_size=32,
+        validation_data=(X_val, y_val),
+        callbacks=[EarlyStopping(patience=10, restore_best_weights=True)],
+        verbose=0
+    )
+
+    return history.history['val_accuracy'][-1]
+
+def build_model(input_shape, output_shape, params):
+    model = Sequential()
+    model.add(Dense(params['units_l0'], input_shape=input_shape, activation='relu'))
+    model.add(Dropout(params['dropout_rate']))
+
+    for i in range(1, params['num_layers']):
+        model.add(Dense(params[f'units_l{i}'], activation='relu'))
+        model.add(Dropout(params['dropout_rate']))
+
+    model.add(Dense(output_shape, activation='softmax'))
+
+    optimizer = Adam(learning_rate=params['learning_rate'])
+    model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+
+    return model
+
+def train_model(model, X_train, y_train, X_val, y_val, callbacks=None):
+    history = model.fit(
+        X_train, y_train,
+        epochs=100,
+        batch_size=32,
+        validation_data=(X_val, y_val),
+        callbacks=callbacks,
+        verbose=1
+    )
+    return history
+
+if __name__ == "__main__":
+    try:
+        # Split data into train, validation, and test sets
+        X_train, X_test, y_train, y_test = train_test_split(np.array(train_x), np.array(train_y), test_size=0.2, random_state=42)
+        X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2, random_state=42)
+
+        # Hyperparameter tuning
+        study = optuna.create_study(direction='maximize')
+        study.optimize(objective, n_trials=100)
+
+        best_params = study.best_params
+        print(f"Best hyperparameters: {best_params}")
+
+        # Train final model with best hyperparameters
+        final_model = build_model((len(X_train[0]),), len(y_train[0]), best_params)
+        
+        tensorboard_callback = TensorBoard(log_dir="./logs")
+        
+        history = train_model(final_model, X_train, y_train, X_val, y_val, callbacks=[tensorboard_callback])
+
+        # Evaluate on test set
+        test_loss, test_accuracy = final_model.evaluate(X_test, y_test)
+
+        print(f"Test accuracy: {test_accuracy}")
+
+        # Save the model
+        final_model.save('chatbot_model.h5')
+        
+        # Save words and classes
+        pickle.dump(words, open('words.pkl', 'wb'))
+        pickle.dump(classes, open('classes.pkl', 'wb'))
+
+        print("Model and data saved successfully.")
+    except Exception as e:
+        print(f"Error in main execution: {e}")
+        raise
