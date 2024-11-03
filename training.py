@@ -5,8 +5,7 @@ import json
 import pickle
 import numpy as np
 import tensorflow as tf
-import keras
-from tensorflow.keras.models import Sequential  # Updated import
+from models import Sequential  # Changed to absolute import
 from tensorflow.keras.layers import Dense, Activation, Dropout  # Updated import
 from tensorflow.keras.optimizers import SGD, Adam  # Updated import
 from tensorflow.keras.callbacks import TensorBoard, EarlyStopping  # Updated import
@@ -18,8 +17,13 @@ words=[]
 classes = []
 documents = []
 ignore_words = ['?', '!']
-data_file = open('intents.json').read()
-intents = json.loads(data_file)
+
+try:
+    data_file = open('intents.json').read()
+    intents = json.loads(data_file)
+except Exception as e:
+    print(f"Error loading intents.json: {e}")
+    raise
 
 for intent in intents['intents']:
     for pattern in intent['patterns']:
@@ -42,8 +46,14 @@ print (len(documents), "documents")
 print (len(classes), "classes", classes)
 # words = all words, vocabulary
 print (len(words), "unique lemmatized words", words)
-pickle.dump(words,open('texts.pkl','wb'))
-pickle.dump(classes,open('labels.pkl','wb'))
+
+try:
+    pickle.dump(words, open('texts.pkl', 'wb'))
+    pickle.dump(classes, open('labels.pkl', 'wb'))
+except Exception as e:
+    print(f"Error saving pickle files: {e}")
+    raise
+
 # create our training data
 training = []
 # create an empty array for our output

@@ -47,6 +47,14 @@ def chatbot_response(user_input):
     
     # Decode the output
     response = tokenizer.decode(output[0], skip_special_tokens=True)
+    # Encode the entire conversation history
+    input_ids = tokenizer.encode(" ".join(conversation_history), return_tensors="pt")
+    
+    # Generate a response
+    output = model.generate(input_ids, max_length=1000, num_return_sequences=1, no_repeat_ngram_size=2, top_k=50, top_p=0.95, temperature=0.7)
+    
+    # Decode the response
+    response = tokenizer.decode(output[:, input_ids.shape[-1]:][0], skip_special_tokens=True)
     
     # Add bot response to conversation history
     conversation_history.append(response)
@@ -56,6 +64,7 @@ def chatbot_response(user_input):
         conversation_history = conversation_history[-10:]
     
     return response[len(context):]  # Remove the context from the response
+    return response
 
 if __name__ == "__main__":
     app.run()
