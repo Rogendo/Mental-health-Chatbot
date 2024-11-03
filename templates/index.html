@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="psychAI - Mental Health Chatbot">
+  <meta http-for="textInput" content="noindex">
   <title>psychAI</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='styles/style.css') }}">
@@ -19,8 +21,8 @@
       </div>
     </div>
     <div class="user-input">
-      <input type="text" id="textInput" placeholder="Type your message here...">
-      <button id="sendButton">Send</button>
+      <input type="text" id="textInput" placeholder="Type your message here..." aria-label="Message input">
+      <button id="sendButton" type="button" aria-label="Send message">Send</button>
     </div>
   </div>
   <script src="{{ url_for('static', filename='js/bot.js') }}"></script>
