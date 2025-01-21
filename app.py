@@ -19,34 +19,35 @@ from spacy_langdetect import LanguageDetector
 
 
 # translator pipeline for english to swahili translations
-eng_swa_model_checkpoint = "Helsinki-NLP/opus-mt-en-swc"
-eng_swa_tokenizer = AutoTokenizer.from_pretrained("./model/eng_swa_model/")
-eng_swa_model = AutoModelForSeq2SeqLM.from_pretrained("./model/eng_swa_model/")
+
+eng_swa_tokenizer = AutoTokenizer.from_pretrained("Rogendo/en-sw")
+eng_swa_model = AutoModelForSeq2SeqLM.from_pretrained("Rogendo/en-sw")
 
 eng_swa_translator = pipeline(
     "text2text-generation",
-    model=eng_swa_model,
-    tokenizer=eng_swa_tokenizer,
+    model = eng_swa_model,
+    tokenizer = eng_swa_tokenizer,
 )
 
 def translate_text_eng_swa(text):
     translated_text = eng_swa_translator(text, max_length=128, num_beams=5)[0]['generated_text']
     return translated_text
 
+
 # translator pipeline for swahili to english translations
-swa_eng_model_checkpoint = "Helsinki-NLP/opus-mt-swc-en"
-swa_eng_tokenizer = AutoTokenizer.from_pretrained("./model/swa_eng_model/")
-swa_eng_model = AutoModelForSeq2SeqLM.from_pretrained("./model/swa_eng_model/")
+
+swa_eng_tokenizer = AutoTokenizer.from_pretrained("Rogendo/sw-en")
+swa_eng_model = AutoModelForSeq2SeqLM.from_pretrained("Rogendo/sw-en")
 
 swa_eng_translator = pipeline(
     "text2text-generation",
-    model=swa_eng_model,
-    tokenizer=swa_eng_tokenizer,
+    model = swa_eng_model,
+    tokenizer = swa_eng_tokenizer,
 )
 
 def translate_text_swa_eng(text):
-    translated_text = swa_eng_translator(text, max_length=128, num_beams=5)[0]['generated_text']
-    return translated_text
+  translated_text = swa_eng_translator(text,max_length=128, num_beams=5)[0]['generated_text']
+  return translated_text
 
 
 def get_lang_detector(nlp, name):
