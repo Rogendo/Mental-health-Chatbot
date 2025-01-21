@@ -1,5 +1,6 @@
 import nltk
 nltk.download('popular')
+nltk.download('punkt_tab')
 from nltk.stem import WordNetLemmatizer
 lemmatizer = WordNetLemmatizer()
 import pickle
