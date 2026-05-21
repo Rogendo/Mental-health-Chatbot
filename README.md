@@ -1,51 +1,37 @@
-# Mental-health-Chatbot 
-This is an AI-powered bot designed to provide emotional support and assistance to individuals struggling with mental health issues. 
-It can help individuals access mental health resources, offer guidance and support. 
-With the integration of Language translation, this chatbot will be very efficient as it will be able to break the language barriers. 
+# psychAI
 
-The creation of a chatbot capable of language translation, holds transformative potential, acting as a catalyst in overcoming language barriers for effective communication and information exchange. 
-Its impact spans diverse sectors, including: healthcare, commerce, and governance etc. offering a versatile solution to bridge linguistic gaps.
+psychAI is a Flask-based mental wellbeing platform with GPT-powered supportive chat, mood check-ins, quick grounding prompts, a breathing reset, and crisis resource surfacing.
 
-https://codeaxe.co.ke/multilingobot/
-# How to run it?
+It is designed for reflection and coping support, not diagnosis or emergency care. If someone may be in immediate danger, they should contact local emergency services or a crisis line right away.
 
-First step is to download the models from the link <a href="https://drive.google.com/drive/folders/1ybwgK1XNG1wd8As0m9vjMdQfHmD6E9uk?usp=sharing"> MODEL </a> add the model in the root project directory.
+## Model choice
 
-The following instructions were tested on the Windows and Linux with Python 3.8.
+The app defaults to `gpt-5.2` for the main wellbeing coach because OpenAI's current model catalog lists GPT-5.2 as a featured frontier model recommended for demanding production work. It also defines `gpt-5-nano` as the fast, low-cost model slot for lightweight classification or routing work.
 
-1. Clone this repository
+You can override either model without code changes:
 
-```
-git clone https://github.com/Rogendo/Mental-health-Chatbot.git
-```
-```
-cd Mental-health-Chatbot/
+```powershell
+$env:PSYCHAI_MODEL="gpt-5.2"
+$env:PSYCHAI_FAST_MODEL="gpt-5-nano"
 ```
 
-2. Create and activate virtual environment 
+## Run locally
 
-```
+```powershell
 python -m venv venv
-```
-on Linux system
-```
-source venv/bin/activate
-```
-on Windows system
-```
-.\venv\Scripts\activate.bat
-```
-3. Install requirements
-
-```
-pip install  -r requirements.txt
-```
-
-4. Run the 
-```
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+$env:OPENAI_API_KEY="your_api_key_here"
 flask --app app --debug run
-
 ```
 
+Then open `http://127.0.0.1:5000`.
 
-![image](https://user-images.githubusercontent.com/62094358/221975328-2c9500a6-d551-4704-8544-e60e449bcdda.png)
+If `OPENAI_API_KEY` is not set, psychAI still runs with a local fallback response so the UI can be developed and reviewed.
+
+## Key routes
+
+- `GET /` renders the psychAI platform.
+- `POST /api/chat` returns a GPT-backed wellbeing response.
+- `GET /api/config` returns model and API readiness metadata.
+- `GET /get?msg=...` preserves the older chatbot route for compatibility.

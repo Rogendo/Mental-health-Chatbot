@@ -3,28 +3,107 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="psychAI - Mental Health Chatbot">
-  <meta http-for="textInput" content="noindex">
+  <meta name="description" content="psychAI mental wellbeing platform powered by GPT models">
   <title>psychAI</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='styles/style.css') }}">
 </head>
 <body>
-  <div class="chat-container">
-    <header>
-      <h1>psychAI</h1>
-    </header>
-    <div class="chat-box" id="chatbox">
-      <div class="chat-message bot">
-        <img src="{{ url_for('static', filename='img/mhcicon.png') }}" alt="Bot">
-        <p>Hello! I'm psychAI, here to listen and help. How are you feeling today?</p>
+  <main class="app-shell">
+    <aside class="sidebar" aria-label="Wellbeing tools">
+      <div class="brand">
+        <img src="{{ url_for('static', filename='img/mhcicon.png') }}" alt="">
+        <div>
+          <p class="eyebrow">Mental wellbeing</p>
+          <h1>psychAI</h1>
+        </div>
       </div>
-    </div>
-    <div class="user-input">
-      <input type="text" id="textInput" placeholder="Type your message here..." aria-label="Message input">
-      <button id="sendButton" type="button" aria-label="Send message">Send</button>
-    </div>
-  </div>
+
+      <section class="panel status-panel" aria-label="Model status">
+        <span class="status-dot {{ 'online' if has_api_key else 'offline' }}"></span>
+        <div>
+          <strong>{{ primary_model }}</strong>
+          <p>{{ 'GPT coaching is ready' if has_api_key else 'Local fallback active' }}</p>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Check in</h2>
+        <div class="mood-grid" role="group" aria-label="Choose your current mood">
+          <button class="mood-chip active" type="button" data-mood="steady">Steady</button>
+          <button class="mood-chip" type="button" data-mood="anxious">Anxious</button>
+          <button class="mood-chip" type="button" data-mood="low">Low</button>
+          <button class="mood-chip" type="button" data-mood="stressed">Stressed</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Quick reset</h2>
+        <div class="breathing-card" aria-live="polite">
+          <span id="breathPhase">Breathe in</span>
+          <strong id="breathCount">4</strong>
+        </div>
+        <button class="secondary-button" id="breathButton" type="button">Start 60 second reset</button>
+      </section>
+
+      <section class="panel resources">
+        <h2>Support</h2>
+        <a href="tel:988">Call or text 988</a>
+        <a href="https://988lifeline.org/" target="_blank" rel="noreferrer">988 Lifeline</a>
+        <a href="https://findahelpline.com/" target="_blank" rel="noreferrer">Find a local helpline</a>
+      </section>
+    </aside>
+
+    <section class="workspace" aria-label="psychAI chat">
+      <header class="workspace-header">
+        <div>
+          <p class="eyebrow">GPT-guided reflection</p>
+          <h2>Talk through what is on your mind</h2>
+        </div>
+        <div class="model-pill" title="Primary model for supportive chat">{{ primary_model }}</div>
+      </header>
+
+      <div class="insight-row" aria-label="Suggested wellbeing actions">
+        <button class="prompt-card" type="button" data-prompt="Help me calm down from anxiety with a short grounding exercise.">
+          <span>Grounding</span>
+          <strong>Calm anxiety</strong>
+        </button>
+        <button class="prompt-card" type="button" data-prompt="Help me reframe a stressful thought without dismissing how I feel.">
+          <span>Reframe</span>
+          <strong>Work with a thought</strong>
+        </button>
+        <button class="prompt-card" type="button" data-prompt="Create a gentle plan for the next 30 minutes while I am feeling low.">
+          <span>Plan</span>
+          <strong>Next small step</strong>
+        </button>
+      </div>
+
+      <div class="chat-box" id="chatbox" aria-live="polite">
+        <article class="chat-message bot">
+          <img src="{{ url_for('static', filename='img/mhcicon.png') }}" alt="">
+          <div>
+            <p>Hello, I am psychAI. I can help you name what you are feeling, slow the moment down, and choose a next step.</p>
+            <small>I am not a replacement for professional care. If you may be in danger, call emergency services or a crisis line now.</small>
+          </div>
+        </article>
+      </div>
+
+      <form class="composer" id="chatForm">
+        <input type="text" id="textInput" placeholder="Share what you are feeling..." autocomplete="off" aria-label="Message psychAI">
+        <button id="sendButton" type="submit" aria-label="Send message">Send</button>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    window.PSYCHAI_CONFIG = {
+      primaryModel: "{{ primary_model }}",
+      fastModel: "{{ fast_model }}",
+      apiReady: {{ 'true' if has_api_key else 'false' }}
+    };
+  </script>
   <script src="{{ url_for('static', filename='js/bot.js') }}"></script>
 </body>
 </html>
