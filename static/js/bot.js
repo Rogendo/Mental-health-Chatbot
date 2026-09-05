@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const sendButton = document.getElementById("sendButton");
   const textInput = document.getElementById("textInput");
   const chatbox = document.getElementById("chatbox");
+  const workspace = document.querySelector(".workspace");
   const moodButtons = document.querySelectorAll(".mood-chip");
   const promptCards = document.querySelectorAll(".prompt-card");
   const breathButton = document.getElementById("breathButton");
@@ -51,6 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const cleanMessage = message.trim();
     if (!cleanMessage || isWaiting) return;
 
+    workspace.classList.add("chat-started");
     addMessage(cleanMessage, "user");
     history.push({ role: "user", content: cleanMessage });
     textInput.value = "";

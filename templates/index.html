@@ -14,12 +14,27 @@
   <main class="app-shell">
     <aside class="sidebar" aria-label="Wellbeing tools">
       <div class="brand">
-        <img src="{{ url_for('static', filename='img/mhcicon.png') }}" alt="">
+        <span class="brand-mark">
+          <img src="{{ url_for('static', filename='img/mhcicon.png') }}" alt="">
+        </span>
         <div>
-          <p class="eyebrow">Mental wellbeing</p>
+          <p class="eyebrow">Mindful companion</p>
           <h1>psychAI</h1>
         </div>
       </div>
+
+      <section class="calm-card" aria-label="Daily balance">
+        <div>
+          <p class="eyebrow">Today</p>
+          <strong>Small steps count</strong>
+        </div>
+        <div class="balance-bars" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </section>
 
       <section class="panel status-panel" aria-label="Model status">
         <span class="status-dot {{ 'online' if has_api_key else 'offline' }}"></span>
@@ -32,10 +47,10 @@
       <section class="panel">
         <h2>Check in</h2>
         <div class="mood-grid" role="group" aria-label="Choose your current mood">
-          <button class="mood-chip active" type="button" data-mood="steady">Steady</button>
-          <button class="mood-chip" type="button" data-mood="anxious">Anxious</button>
-          <button class="mood-chip" type="button" data-mood="low">Low</button>
-          <button class="mood-chip" type="button" data-mood="stressed">Stressed</button>
+          <button class="mood-chip active" type="button" data-mood="steady"><span></span>Steady</button>
+          <button class="mood-chip" type="button" data-mood="anxious"><span></span>Anxious</button>
+          <button class="mood-chip" type="button" data-mood="low"><span></span>Low</button>
+          <button class="mood-chip" type="button" data-mood="stressed"><span></span>Stressed</button>
         </div>
       </section>
 
@@ -59,23 +74,38 @@
     <section class="workspace" aria-label="psychAI chat">
       <header class="workspace-header">
         <div>
-          <p class="eyebrow">GPT-guided reflection</p>
+          <p class="eyebrow">psychAI reflection space</p>
           <h2>Talk through what is on your mind</h2>
         </div>
         <div class="model-pill" title="Primary model for supportive chat">{{ primary_model }}</div>
       </header>
 
+      <div class="care-strip" aria-label="Wellbeing focus">
+        <div>
+          <span>01</span>
+          <strong>Listen</strong>
+        </div>
+        <div>
+          <span>02</span>
+          <strong>Regulate</strong>
+        </div>
+        <div>
+          <span>03</span>
+          <strong>Choose next step</strong>
+        </div>
+      </div>
+
       <div class="insight-row" aria-label="Suggested wellbeing actions">
         <button class="prompt-card" type="button" data-prompt="Help me calm down from anxiety with a short grounding exercise.">
-          <span>Grounding</span>
+          <span><i></i>Grounding</span>
           <strong>Calm anxiety</strong>
         </button>
         <button class="prompt-card" type="button" data-prompt="Help me reframe a stressful thought without dismissing how I feel.">
-          <span>Reframe</span>
+          <span><i></i>Reframe</span>
           <strong>Work with a thought</strong>
         </button>
         <button class="prompt-card" type="button" data-prompt="Create a gentle plan for the next 30 minutes while I am feeling low.">
-          <span>Plan</span>
+          <span><i></i>Plan</span>
           <strong>Next small step</strong>
         </button>
       </div>
@@ -91,7 +121,9 @@
       </div>
 
       <form class="composer" id="chatForm">
-        <input type="text" id="textInput" placeholder="Share what you are feeling..." autocomplete="off" aria-label="Message psychAI">
+        <div class="input-shell">
+          <input type="text" id="textInput" placeholder="Share what you are feeling..." autocomplete="off" aria-label="Message psychAI">
+        </div>
         <button id="sendButton" type="submit" aria-label="Send message">Send</button>
       </form>
     </section>
