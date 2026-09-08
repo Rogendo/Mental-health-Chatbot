@@ -1,77 +1,154 @@
+document.addEventListener("DOMContentLoaded", () => {
+  const chatForm = document.getElementById("chatForm");
+  const sendButton = document.getElementById("sendButton");
+  const textInput = document.getElementById("textInput");
+  const chatbox = document.getElementById("chatbox");
+  const workspace = document.querySelector(".workspace");
+  const moodButtons = document.querySelectorAll(".mood-chip");
+  const promptCards = document.querySelectorAll(".prompt-card");
+  const breathButton = document.getElementById("breathButton");
+  const breathPhase = document.getElementById("breathPhase");
+  const breathCount = document.getElementById("breathCount");
 
-function updateTime() {
-    var now = new Date();
-    var hours = now.getHours();
-    var minutes = now.getMinutes();
-    var seconds = now.getSeconds();
-    var timeString = hours + ':' + minutes;
-    document.getElementById('clock').textContent = timeString;
+  const history = [];
+  let selectedMood = "steady";
+  let isWaiting = false;
+  let breathTimer = null;
+
+  function addMessage(message, role = "assistant", meta = "") {
+    const messageEl = document.createElement("article");
+    messageEl.className = `chat-message ${role === "user" ? "user" : "bot"}`;
+
+    const avatar = document.createElement("img");
+    avatar.src = role === "user" ? "/static/img/person.png" : "/static/img/mhcicon.png";
+    avatar.alt = "";
+
+    const body = document.createElement("div");
+    const text = document.createElement("p");
+    text.textContent = message;
+    body.appendChild(text);
+
+    if (meta) {
+      const small = document.createElement("small");
+      small.textContent = meta;
+      body.appendChild(small);
+    }
+
+    messageEl.appendChild(avatar);
+    messageEl.appendChild(body);
+    chatbox.appendChild(messageEl);
+    chatbox.scrollTop = chatbox.scrollHeight;
+    return messageEl;
   }
-  setInterval(updateTime, 1000);
 
-var running = false;
-document.getElementById("chatbot_toggle").onclick = function () {
-if (document.getElementById("chatbot").classList.contains("collapsed")) {
-document.getElementById("chatbot").classList.remove("collapsed")
-document.getElementById("chatbot_toggle").children[0].style.display = "none"
-document.getElementById("chatbot_toggle").children[1].style.display = ""
-setTimeout(addResponseMsg,1000,"Hi")
-}
-else {
-document.getElementById("chatbot").classList.add("collapsed")
-document.getElementById("chatbot_toggle").children[0].style.display = ""
-document.getElementById("chatbot_toggle").children[1].style.display = "none"
-}
-}
+  function setWaiting(waiting) {
+    isWaiting = waiting;
+    sendButton.disabled = waiting;
+    textInput.disabled = waiting;
+    sendButton.textContent = waiting ? "..." : "Send";
+  }
 
-const msgerForm = get(".msger-inputarea");
-const msgerInput = get(".msger-input");
-const msgerChat = get(".msger-chat");
-// Icons made by Freepik from www.flaticon.com
-const BOT_IMG = "static/img/mhcicon.png";
-const PERSON_IMG = "static/img/person.png";
-const BOT_NAME = "    Psychiatrist Bot";
-const PERSON_NAME = "You";
-msgerForm.addEventListener("submit", event => {
-event.preventDefault();
-const msgText = msgerInput.value;
-if (!msgText) return;
-appendMessage(PERSON_NAME, PERSON_IMG, "right", msgText);
-msgerInput.value = "";
-botResponse(msgText);
+  async function sendMessage(message) {
+    const cleanMessage = message.trim();
+    if (!cleanMessage || isWaiting) return;
+
+    workspace.classList.add("chat-started");
+    addMessage(cleanMessage, "user");
+    history.push({ role: "user", content: cleanMessage });
+    textInput.value = "";
+    setWaiting(true);
+
+    const thinking = addMessage("Thinking with you...", "assistant");
+    thinking.classList.add("thinking");
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: cleanMessage,
+          mood: selectedMood,
+          history: history.slice(-10),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Request failed");
+      }
+
+      const data = await response.json();
+      thinking.remove();
+      addMessage(data.reply, "assistant", `Model: ${data.model}`);
+      history.push({ role: "assistant", content: data.reply });
+    } catch (error) {
+      thinking.remove();
+      addMessage("I had trouble responding just now. Try again in a moment, and if this is urgent please contact local emergency support.", "assistant");
+    } finally {
+      setWaiting(false);
+      textInput.focus();
+    }
+  }
+
+  moodButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      moodButtons.forEach((item) => item.classList.remove("active"));
+      button.classList.add("active");
+      selectedMood = button.dataset.mood;
+    });
+  });
+
+  promptCards.forEach((card) => {
+    card.addEventListener("click", () => {
+      textInput.value = card.dataset.prompt;
+      textInput.focus();
+    });
+  });
+
+  chatForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    sendMessage(textInput.value);
+  });
+
+  function runBreathingReset() {
+    if (breathTimer) {
+      clearInterval(breathTimer);
+      breathTimer = null;
+    }
+
+    const pattern = [
+      { phase: "Breathe in", seconds: 4 },
+      { phase: "Hold", seconds: 2 },
+      { phase: "Breathe out", seconds: 6 },
+    ];
+    let patternIndex = 0;
+    let remaining = pattern[patternIndex].seconds;
+    let cycles = 0;
+
+    breathButton.disabled = true;
+    breathButton.textContent = "Reset in progress";
+
+    breathTimer = setInterval(() => {
+      const current = pattern[patternIndex];
+      breathPhase.textContent = current.phase;
+      breathCount.textContent = remaining;
+      remaining -= 1;
+
+      if (remaining < 0) {
+        patternIndex = (patternIndex + 1) % pattern.length;
+        if (patternIndex === 0) cycles += 1;
+        remaining = pattern[patternIndex].seconds;
+      }
+
+      if (cycles >= 5) {
+        clearInterval(breathTimer);
+        breathTimer = null;
+        breathPhase.textContent = "Nice work";
+        breathCount.textContent = "1";
+        breathButton.disabled = false;
+        breathButton.textContent = "Start 60 second reset";
+      }
+    }, 1000);
+  }
+
+  breathButton.addEventListener("click", runBreathingReset);
 });
-function appendMessage(name, img, side, text) {
-//   Simple solution for small apps
-const msgHTML = `
-<div class="msg ${side}-msg">
-<div class="msg-img" style="background-image: url(${img})"></div>
-<div class="msg-bubble">
-<div class="msg-info">
-<div class="msg-info-name">${name}</div>
-<div class="msg-info-time">${formatDate(new Date())}</div>
-</div>
-<div class="msg-text">${text}</div>
-</div>
-</div>
-`;
-msgerChat.insertAdjacentHTML("beforeend", msgHTML);
-msgerChat.scrollTop += 500;
-}
-function botResponse(rawText) {
-// Bot Response
-$.get("/get", { msg: rawText }).done(function (data) {
-console.log(rawText);
-console.log(data);
-const msgText = data;
-appendMessage(BOT_NAME, BOT_IMG, "left", msgText);
-});
-}
-// Utils
-function get(selector, root = document) {
-return root.querySelector(selector);
-}
-function formatDate(date) {
-const h = "0" + date.getHours();
-const m = "0" + date.getMinutes();
-return `${h.slice(-2)}:${m.slice(-2)}`;
-}
